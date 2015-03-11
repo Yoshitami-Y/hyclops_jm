@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<job>
+    <script  language="shell">
+        <![CDATA[
+
+#!/bin/bash
+
+JOS_HOME=/home/scheduler/
+JOS_DIR=${JOS_HOME}/sos-berlin.com/jobscheduler/scheduler/config/notification/
+ZAB_DIR=/usr/lib/zabbix/externalscripts/
+FILE=SystemMonitorNotification_zabbix.xml
+
+JOS_FILE_NAME=${JOS_DIR}${FILE}
+ZAB_FILE_NAME=${ZAB_DIR}${FILE}
+
+echo $JOS_FILE_NAME
+echo $ZAB_FILE_NAME
+
+if [ ! -e $FILE_NAME ]; then
+	echo "Copy the SystemMonitorNotification_zabbix file"
+	sudo cp $JOS_FILE_NAME $ZAB_DIR
+	sudo chmod 777 $ZAB_FILE_NAME
+
+else
+	diff $JOS_FILE_NAME $ZAB_FILE_NAME
+	if [ $? != 0 ]; then
+		echo "Copy the SystemMonitorNotification_zabbix file"
+		sudo cp $JOS_FILE_NAME $ZAB_DIR
+		sudo chmod 777 $ZAB_FILE_NAME
+	else
+		echo "File the latest"
+	fi
+fi
+
+        ]]>
+   </script>
+   <run_time>
+            <period repeat="00:01"/>
+   </run_time>
+</job>

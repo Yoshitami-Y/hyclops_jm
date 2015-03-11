@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<order>
+    <params>
+		<param name="hibernate_configuration_file"  value="config/hibernate.cfg.xml" />
+		<param name="schema_configuration_file"     value="config/notification/SystemMonitorNotification_v1.0.xsd"/>
+        
+        <param name="system_configuration_file"     value="config/notification/SystemMonitorNotification_zabbix.xml"/>
+    </params>
+
+    <run_time>
+        <period  absolute_repeat="00:02" begin="00:00" end="24:00"/>
+    </run_time>
+</order>

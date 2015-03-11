@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SystemMonitorNotification system_id="zabbix">
+	<Notification>
+		<NotificationMonitor service_name_on_error="joberror" service_status_on_error="1">
+			<NotificationCommand><![CDATA[
+				zabbix_sender -z localhost -s localhost -k service_name_[%SERVICE_NAME%] -o %SERVICE_STATUS%
+			]]></NotificationCommand>
+
+		</NotificationMonitor>
+         
+		<NotificationObjects>
+			<JobChain name="test2_jobchain" notifications="10"/>
+		</NotificationObjects>
+	</Notification>
+
+
+</SystemMonitorNotification>
+

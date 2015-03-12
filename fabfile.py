@@ -46,13 +46,13 @@ def _sudo_to_user(user):
     local('echo "Defaults:%s !requiretty,env_reset" >> /etc/sudoers.d/%s' % (user, user))
 
 
-def _setup_postfix():
-  _allow_error()
-  res = run('grep hyclops_jm /etc/aliases')
-  _deny_error()
-  if res.return_code != 0:
-    local('echo "%s: | \\"/usr/local/sbin/hyclops_jm_mail.sh\\"" >> /etc/aliases' % env.jm_user)
-    local('newaliases')
+#def _setup_postfix():
+#  _allow_error()
+#  res = run('grep hyclops_jm /etc/aliases')
+#  _deny_error()
+#  if res.return_code != 0:
+#    local('echo "%s: | \\"/usr/local/sbin/hyclops_jm_mail.sh\\"" >> /etc/aliases' % env.jm_user)
+#    local('newaliases')
 
 def _setup_db():
   local("export PATH=/usr/pgsql-%s/bin:$PATH;pip install psycopg2" % env.pgsql_version)
@@ -84,14 +84,21 @@ def _setup_scripts():
   jm_home = "/home/%s/hyclops_jm" % env.js_user
   js_data = "/home/%s/sos-berlin.com/jobscheduler/%s" % (env.js_user, env.js_id)
 
+  notification_conf_file = 'modules/notification/SystemMonitorNotification_zabbix.xml'
+  notification_job_file = 'modules/live/sos/notification/*'
+  zabbix_dir = '/usr/lib/zabbix'
+  zabbix_alertscripts = 'modules/zabbix/alertscripts/ResetNotifications.php'
+  zabbix_externalscripts = 'modules/zabbix/externalscripts/service.name.sh'
+
   local("mkdir -p %s" % log_dir)
   local("mkdir -p %s/live" % jm_home)
   local("cp %s %s/" % (tmpl_name, jm_home))
+
   local("sed 's/HYCLOPS_JM_USER/%s/g' modules/scripts/fabfile.py > %s/fabfile.py" % (env.js_user, jm_home))
   local("chown -R %s:%s %s" % (env.js_user, env.js_user, log_dir))
   local("chown -R %s:%s %s" % (env.js_user, env.js_user, jm_home))
   local("sed 's/HYCLOPS_JM_USER/%s/g' modules/scripts/hyclops_jm > /usr/local/sbin/hyclops_jm" % env.js_user)
-  local("sed 's/HYCLOPS_JM_USER/%s/g' modules/scripts/hyclops_jm_mail.sh > /usr/local/sbin/hyclops_jm_mail.sh" % env.js_user)
+#  local("sed 's/HYCLOPS_JM_USER/%s/g' modules/scripts/hyclops_jm_mail.sh > /usr/local/sbin/hyclops_jm_mail.sh" % env.js_user)
   local("chown %s:%s /usr/local/sbin/hyclops_jm*" % (env.js_user, env.js_user))
   local("chmod +x /usr/local/sbin/hyclops_jm*")
 
@@ -101,15 +108,20 @@ def _setup_scripts():
   for file in files.split('\n'):
     local("sed 's/HYCLOPS_JM_USER/%s/g' modules/%s > %s/config/%s" % (env.js_user, file, js_data, file))
 
-def _setup_jobscheduler():
-  js_data = "/home/%s/sos-berlin.com/jobscheduler/%s" % (env.js_user, env.js_id)
+  local("cp %s %s/alertscripts" % (zabbix_alertscripts, zabbix_dir))
+  local("cp %s %s/externalscripts" % (zabbix_externalscripts, zabbix_dir))
+  local("cp %s %s/config/notification/" % (notification_conf_file, js_data))
+  local("cp %s %s/config/live/sos/notification/" % (notification_job_file, js_data))
 
-  _allow_error()
-  res = run('grep %s %s/config/factory.ini' % (env.jm_user, js_data))
-  _deny_error()
-  if res.return_code != 0:
-    current_mails = run('grep log_mail_to %s/config/factory.ini' % js_data)
-    local("sed -i 's/log_mail_to.*=/log_mail_to             = %s@localhost,/g' %s/config/factory.ini" % (env.jm_user, js_data))
+#def _setup_jobscheduler():
+#  js_data = "/home/%s/sos-berlin.com/jobscheduler/%s" % (env.js_user, env.js_id)
+#
+#  _allow_error()
+#  res = run('grep %s %s/config/factory.ini' % (env.jm_user, js_data))
+#  _deny_error()
+#  if res.return_code != 0:
+#    current_mails = run('grep log_mail_to %s/config/factory.ini' % js_data)
+#    local("sed -i 's/log_mail_to.*=/log_mail_to             = %s@localhost,/g' %s/config/factory.ini" % (env.jm_user, js_data))
 
 #============================================================
 # public functions
@@ -125,8 +137,8 @@ def install(user = 'hyclops_jm', passwd = 'hyclops_jm'):
   _add_user(user, passwd)
   _add_user(env.js_user, env.js_passwd)
   _sudo_to_user(env.js_user)
-  _setup_postfix()
-  _setup_jobscheduler()
+#  _setup_postfix()
+#  _setup_jobscheduler()
   _setup_db()
   _setup_scripts()
 
